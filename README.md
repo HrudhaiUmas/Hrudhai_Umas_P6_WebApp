@@ -12,3 +12,5 @@ The "Table" tab displays tables of the selected subset of data. It contains five
 
 
 LINK TO SHINY APP:_________
+
+TIME TOOK TO COMPLETE: 10 hours.
