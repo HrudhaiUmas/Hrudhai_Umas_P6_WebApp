@@ -5,7 +5,7 @@ library(DT)
 
 co2_data <- read.csv("owid-co2-data-3.csv")
 
-# Define UI for application
+# UI for application
 ui <- fluidPage(
   
   # Application title
@@ -20,11 +20,9 @@ ui <- fluidPage(
                   min = min(co2_data$year), max = max(co2_data$year),
                   value = c(1950, 2021)),
       selectizeInput("countries", "Select Countries:", 
-                     choices = unique(co2_data$country), multiple = TRUE),
-      checkboxInput("all_countries", "All Countries", value = FALSE),
-      
-      
-      
+                     choices = unique(co2_data$country), multiple = TRUE, select = "Afghanistan"),
+      checkboxInput("all_countries", "All Countries (Choose only for Table)", value = FALSE),
+      radioButtons("color_pal", "Color Palette (Choose only for Plot)", choices = c("Palette 1", "Palette 2"))
     ),
     
     # Show a table with the average co2 emissions by country and year
@@ -75,7 +73,7 @@ ui <- fluidPage(
 )
 
 
-# Define server logic
+# server logic
 server <- function(input, output) {
   filtered_data <- reactive({
     if (input$all_countries) {
@@ -92,11 +90,18 @@ server <- function(input, output) {
   
   # Create a plot of CO2 emissions over time for selected countries
   output$co2_plot <- renderPlot({
-    ggplot(filtered_data(), aes(x = year, y = .data[[input$variable]], color = country)) +
+    palette <- if (input$color_pal == "Palette 1") {
+      c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+    } else {
+      c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D")
+    }
+    
+    ggplot(filtered_data(), aes(x = year, y = co2, color = country)) +
       geom_line() +
+      scale_color_manual(values = palette) +
       xlab("Year") +
       ylab("CO2 Emissions (Million Tonnes)") +
-      ggtitle(paste("CO2 Emissions by Year and Country:", input$variable)) +
+      ggtitle(paste("CO2 Emissions by Year and Country")) +
       theme_bw()
   })
   
@@ -145,47 +150,24 @@ server <- function(input, output) {
   })
   
   #Calculate average oil co2 emissions by country and year
-  
   oil_co2_table <- reactive({
     filtered_data() %>% group_by(country) %>% summarise(avg_oil_co2 = mean(oil_co2, na.rm = TRUE))
   })
   
   #Calculate average trade co2 emissions by country and year
-  
   trade_co2_table <- reactive({
     filtered_data() %>% group_by(country) %>% summarise(avg_trade_co2 = mean(trade_co2, na.rm = TRUE))
   })
   
   #Render the number of observations in the selected subset
-  
   output$num_obs <- renderText({
     paste(nrow(filtered_data()), "rows of")
   })
   
   #Render the overall average co2 emissions for the selected subset
-  
   output$overall_avg_co2 <- renderText({
     paste(round(mean(filtered_data()$co2, na.rm = TRUE), 2), "Million Tonnes")
   })
-  
-  #Render the CO2 plot for selected countries
-  
-  output$co2_plot <- renderPlot({
-    if (input$all_countries) {
-      co2_data %>%
-        filter(year >= input$year_range[1], year <= input$year_range[2]) %>%
-        ggplot(aes(x = year, y = co2, color = country)) +
-        geom_line() +
-        labs(title = "CO2 Emissions Over Time", x = "Year", y = "CO2 Emissions (Million Tonnes)")
-    } else {
-      co2_data %>%
-        filter(year >= input$year_range[1], year <= input$year_range[2], country %in% input$countries) %>%
-        ggplot(aes(x = year, y = co2, color = country)) +
-        geom_line() +
-        labs(title = "CO2 Emissions Over Time", x = "Year", y = "CO2 Emissions (Million Tonnes)")
-    }
-  })
-  
   
   #Render the CO2 table for selected countries
   output$co2_table <- DT::renderDataTable({
