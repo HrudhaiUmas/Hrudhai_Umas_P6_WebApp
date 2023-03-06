@@ -11,6 +11,6 @@ The "Plot" tab displays a plot of CO2 emissions over time for selected countries
 The "Table" tab displays tables of the selected subset of data. It contains five tables, one for each of the five emissions types analyzed by the app. The tables display the average emissions for each country in the selected subset of years.
 
 
-LINK TO SHINY APP:_________
+LINK TO SHINY APP: https://hrudhaiumas.shinyapps.io/P6_Web_App_Hrudhai_Umas/
 
 TIME TOOK TO COMPLETE: 10 hours.
